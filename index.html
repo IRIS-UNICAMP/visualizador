@@ -1,0 +1,232 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <title>IRIS</title>
+    <style>
+        canvas {
+            background-color : #eee;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.3.2/dist/chart.min.js"></script> 
+    <script type="text/javascript" >
+        var Dataset = [{
+            x: -10,
+            y: 0
+          }, {
+            x: 0,
+            y: 10
+          }, {
+            x: 10,
+            y: 5
+          }, {
+            x: 0.5,
+            y: 5.5
+          }]
+        var bsup = 0, binf = 0;
+        var ysup = 0, yinf = 0;
+        for(var i = 0; i < Dataset.length; i++) {
+            if(yinf > Dataset[i].y){
+                yinf = Dataset[i].y;
+            }
+            if(ysup < Dataset[i].y){
+                ysup = Dataset[i].y;
+            }
+            if(binf > Dataset[i].x){
+                binf = Dataset[i].x;
+            }
+            if(bsup < Dataset[i].x){
+                bsup = Dataset[i].x;
+            }
+        }  
+
+        function Coef(values){
+            var mean = {x: 0, y: 0};
+            for(var i = 0; i < points_used; i++) {
+                mean.x += values[i].x/points_used;
+                mean.y += values[i].y/points_used;
+            }   
+            var variancex = 0
+            for(var i = 0; i < points_used; i++) {
+                variancex += (values[i].x - mean.x)**2;
+            } 
+            var covariance = 0;
+            for(var i = 0; i < points_used; i++) {
+                covariance += (values[i].x - mean.x)*(values[i].y - mean.y);
+            } 
+            a = covariance / variancex;
+            b = mean.y - a*mean.x;
+            return {a: a, b: b}
+        }
+        function Loss(values, coefs){
+            loss = 0;
+            for(var i = 0; i < values.length; i++) {
+                loss += (values[i].y- values[i].x*coefs.a + coefs.b)**2;
+            } 
+            return loss/values.length
+        }
+
+        var points_used = 0;
+        function calculate(){
+            const interval = setInterval(function(){ 
+                if(points_used >= Dataset.length){
+                    clearInterval(interval);
+                    document.getElementById("cal").disabled = false;
+                }
+                else{
+                    document.getElementById("cal").disabled = true;
+                    points_used++;
+                    epoch.innerHTML = points_used;
+                    coef = Coef(Dataset)
+                    if(coef.a && coef.b){
+                        ac.innerHTML = coef.a.toFixed(2);
+                        bc.innerHTML = coef.b.toFixed(2);
+                        lc.innerHTML = Loss(Dataset, coef).toFixed(2);
+                        chartd.data.datasets.forEach((dataset) => {
+                            if(dataset.label === 'Regressão'){
+                                dataset.data = [{
+                                    x: binf,
+                                    y: binf*coef.a + coef.b
+                                }, {
+                                    x: bsup,
+                                    y: bsup*coef.a + coef.b
+                                }]
+                            }
+
+                        });
+                        chartd.update();  
+                    }
+                }
+            }, 1000);
+        }
+
+        var epoch = null
+        var chartd = null
+        var ac = null
+        var bc = null
+        var lc = null
+        function init(){
+            epoch = document.getElementById("epoch");
+            ac = document.getElementById("ac")
+            bc = document.getElementById("bc");
+            lc = document.getElementById("lc");
+            document.getElementById("total").innerHTML = Dataset.length;
+            chartd = new Chart(document.getElementById("chart"), {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Dados Não Usados',
+                        data: Dataset,
+                        pointRadius: 10,
+                        backgroundColor: 'rgb(255, 99, 132)'
+                      },
+                      {
+                        type: 'line',
+                        label: 'Regressão',
+                        data: [],
+                        pointRadius: 0,
+                        fill:false,
+                        
+                      }]
+                },
+                options: {
+                    responsive:true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        x: {
+                            min: binf,
+                            max: bsup
+                        },
+                        y: {
+                            min: yinf,
+                            max: ysup
+                        }
+                    }
+                }
+             });
+             chartloss1 = new Chart(document.getElementById("chartloss1"), {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Dados Não Usados',
+                        data: Dataset,
+                        pointRadius: 10,
+                        backgroundColor: 'rgb(255, 99, 132)'
+                      },
+                      {
+                        type: 'line',
+                        label: 'Regressão',
+                        data: [],
+                        pointRadius: 0,
+                        fill:false,
+                        
+                      }]
+                },
+                options: {
+                    responsive:true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        x: {
+                            min: binf,
+                            max: bsup
+                        },
+                        y: {
+                            min: yinf,
+                            max: ysup
+                        }
+                    }
+                }
+             });
+             chartloss2 = new Chart(document.getElementById("chartloss2"), {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Dados Não Usados',
+                        data: Dataset,
+                        pointRadius: 10,
+                        backgroundColor: 'rgb(255, 99, 132)'
+                      },
+                      {
+                        type: 'line',
+                        label: 'Regressão',
+                        data: [],
+                        pointRadius: 0,
+                        fill:false,
+                        
+                      }]
+                },
+                options: {
+                    responsive:true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        x: {
+                            min: binf,
+                            max: bsup
+                        },
+                        y: {
+                            min: yinf,
+                            max: ysup
+                        }
+                    }
+                }
+             });
+        }
+    </script>
+
+</head>
+
+<body onload="init();">
+    <div style="padding-left: 25rem">
+        <p>Data points used: <span id="epoch">0</span>/<span id="total">0</span></p>
+        <p>y = <span id="ac">a</span>x + <span id="bc">b</span></p>
+        <p>loss = <span id="lc"></span></p>
+        <button id="cal" type="button" onclick="calculate();">Start!</button>
+    </div>
+    <div class="chart-container" style="position: relative; height:40vh; width:70vw">
+        <canvas id="chart"></canvas>
+    </div>
+
+</body>
+</html>
